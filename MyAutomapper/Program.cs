@@ -18,3 +18,7 @@ var identityCard2 = table.To<TableIdentityCard, IdentityCard>();
 Console.WriteLine(DateTime.UtcNow.Ticks - start.Ticks);
 Console.WriteLine(identityCard);
 Console.WriteLine(identityCard2);
+
+MapManager mapManager = new MapManager();
+var identityCard3 = mapManager.To<TableIdentityCard, IdentityCard>(table);
+Console.WriteLine(identityCard3);
