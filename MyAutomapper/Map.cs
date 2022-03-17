@@ -20,7 +20,7 @@ namespace MyAutomapper
                     if (!Instances.ContainsKey(entityType.FullName))
                     {
                         Dictionary<string, PropertyInfo> mappingProperties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .ToDictionary(p => p.Name, p => p);
+                            .ToDictionary(p => p.Name, p => p);
                         Dictionary<string, PropertyInfo> attributeMappingProperties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                             .Where(p => p.GetCustomAttribute<MappingAttribute>() != default)
                             .ToDictionary(p => p.GetCustomAttribute<MappingAttribute>().Name, p => p);
@@ -42,7 +42,7 @@ namespace MyAutomapper
             }
             return Properties[toMapType.FullName];
         }
-        public static TMap To<T, TMap>(this T toMap)
+        public static TMap To<T, TMap>(this T toMap, MapManagerOptions<T, TMap> options = default)
             where TMap : class, new()
         {
             Type toMapType = toMap.GetType();
@@ -54,12 +54,20 @@ namespace MyAutomapper
                 var name = property.Name;
                 if (map.FromName.ContainsKey(name))
                 {
-                    map.FromName[name].SetValue(entity, property.GetValue(toMap));
+                    map.FromName[name].SetValue(entity, GetValue(property, name));
                 }
                 else if (map.FromAttribute.ContainsKey(name))
                 {
-                    map.FromAttribute[name].SetValue(entity, property.GetValue(toMap));
+                    map.FromAttribute[name].SetValue(entity, GetValue(property, map.FromAttribute[name].Name));
                 }
+            }
+
+            object GetValue(PropertyInfo propertyInfo, string realName)
+            {
+                var value = propertyInfo.GetValue(toMap);
+                if (options.Actions.ContainsKey(realName))
+                    return options.Actions[realName].Invoke(value);
+                return value;
             }
             return entity;
         }
